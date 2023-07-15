@@ -2,9 +2,9 @@
 
 const express = require('express');
 const dataModules = require('../models');
-const bearerAuth = require('../auth/middleware/bearer');
-const permission= require('../auth/middleware/acl')
-const acl = require('../auth/middleware/acl');
+const bearerAuth=require('../auth/middleware/bearer')
+const permissions = require('../auth/middleware/acl')
+
 
 const router = express.Router();
 
@@ -18,26 +18,40 @@ router.param('model', (req, res, next) => {
   }
 });
 
-router.get('/api/v2', bearerAuth, v2Handler);
-router.post('/api/v2', bearerAuth, acl('create'),v2CreateHandler);
-router.put('/api/v2', bearerAuth, acl('update'),v2UpdateHander);
-router.delete('/api/v2', bearerAuth, acl('delete'), v2DeleteHandler);
+router.get('/:model',bearerAuth,permissions("read"),handleGetAll);
+router.get('/:model/:id',bearerAuth,permissions("read"), handleGetOne);
+router.post('/:model',bearerAuth,permissions("create") ,handleCreate);
+router.put('/:model/:id', bearerAuth,permissions("update") ,handleUpdate);
+router.delete('/:model/:id',bearerAuth,permissions("delete") , handleDelete);
 
-
-function v2Handler(req, res) {
-    res.status(200).json('you have the access');
+async function handleGetAll(req, res) {
+  let allRecords = await req.model.get();
+  res.status(200).json(allRecords);
 }
 
-function v2CreateHandler(req, res) {
-    res.status(201).json('you can Create');
+async function handleGetOne(req, res) {
+  const id = req.params.id;
+  let theRecord = await req.model.get(id)
+  res.status(200).json(theRecord);
 }
 
-function v2UpdateHander(req, res) {
-    res.status(200).json('you can update');
+async function handleCreate(req, res) {
+  let obj = req.body;
+  let newRecord = await req.model.create(obj);
+  res.status(201).json(newRecord);
 }
 
-function v2DeleteHandler(req, res) {
-    res.status(200).json('you can delete');
+async function handleUpdate(req, res) {
+  const id = req.params.id;
+  const obj = req.body;
+  let updatedRecord = await req.model.update(id, obj)
+  res.status(200).json(updatedRecord);
+}
+
+async function handleDelete(req, res) {
+  let id = req.params.id;
+  let deletedRecord = await req.model.delete(id);
+  res.status(200).json(deletedRecord);
 }
 
 
