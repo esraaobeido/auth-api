@@ -13,8 +13,7 @@ class DataCollection {
   get(id) {
     if (id) {
       return this.model.findOne({ id });
-    }
-    else {
+    } else {
       return this.model.findAll({});
     }
   }
@@ -23,15 +22,21 @@ class DataCollection {
     return this.model.create(record);
   }
 
-  update(id, data) {
-    return this.model.findOne({ where: { id } })
-      .then(record => record.update(data));
+  async update(id, data) {
+    const record = await this.model.findOne({ where: { id } });
+    if (record) {
+      return await record.update(data);
+    }
+    return null;
   }
 
-  delete(id) {
-    return this.model.destroy({ where: { id }});
+  async delete(id) {
+    const record = await this.model.findOne({ where: { id } });
+    if (record) {
+      return await record.destroy();
+    }
+    return null;
   }
-
 }
 
 module.exports = DataCollection;
